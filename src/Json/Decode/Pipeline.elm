@@ -136,7 +136,9 @@ optionalDecoder pathDecoder valDecoder fallback =
                             Decode.succeed finalResult
 
                         Err finalErr ->
-                            Decode.fail finalErr
+                            -- TODO is there some way to preserve the structure
+                            -- of the original error instead of using toString here?
+                            Decode.fail (Decode.errorToString finalErr)
 
                 Err _ ->
                     -- The field was not present, so use the fallback.
