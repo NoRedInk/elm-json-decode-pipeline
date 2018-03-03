@@ -1,14 +1,14 @@
 port module Main exposing (..)
 
-{-|
-Run the tests with node-test-runner:
+{-| Run the tests with node-test-runner:
 
-https://github.com/rtfeldman/node-test-runner
+<https://github.com/rtfeldman/node-test-runner>
+
 -}
 
-import Tests
-import Test.Runner.Node exposing (run)
 import Json.Encode exposing (Value)
+import Test.Runner.Node exposing (run)
+import Tests
 
 
 main : Program Never

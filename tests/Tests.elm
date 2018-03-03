@@ -1,17 +1,17 @@
 module Tests exposing (..)
 
-import Test exposing (..)
 import Expect exposing (Expectation)
+import Json.Decode exposing (Decoder, null, string)
 import Json.Decode.Pipeline
     exposing
         ( decode
-        , required
-        , requiredAt
         , optional
         , optionalAt
+        , required
+        , requiredAt
         , resolveResult
         )
-import Json.Decode exposing (Decoder, string, null)
+import Test exposing (..)
 
 
 {-| Run some JSON through a Decoder and return the result.
