@@ -1,7 +1,7 @@
 # json-decode-pipeline
 
-A library for building decoders using the pipeline [`(|>)`](http://package.elm-lang.org/packages/elm-lang/core/3.0.0/Basics#|>)
-operator and plain function calls.
+Build JSON decoders using the pipeline [`(|>)`](http://package.elm-lang.org/packages/elm-lang/core/3.0.0/Basics#|>)
+operator.
 
 ## Motivation
 
