@@ -1,11 +1,10 @@
 module Tests exposing (..)
 
 import Expect exposing (Expectation)
-import Json.Decode exposing (Decoder, null, string)
+import Json.Decode as Decode exposing (Decoder, null, string)
 import Json.Decode.Pipeline
     exposing
-        ( decode
-        , optional
+        ( optional
         , optionalAt
         , required
         , requiredAt
@@ -18,7 +17,7 @@ import Test exposing (..)
 -}
 runWith : String -> Decoder a -> Result String a
 runWith =
-    flip Json.Decode.decodeString
+    flip Decode.decodeString
 
 
 isError : Result err ok -> Bool
@@ -43,70 +42,70 @@ all =
         "Json.Decode.Pipeline"
         [ test "should decode basic example" <|
             \() ->
-                decode (,)
+                Decode.succeed (,)
                     |> required "a" string
                     |> required "b" string
                     |> runWith """{"a":"foo","b":"bar"}"""
                     |> Expect.equal (Ok ( "foo", "bar" ))
         , test "should decode requiredAt fields" <|
             \() ->
-                decode (,)
+                Decode.succeed (,)
                     |> requiredAt [ "a" ] string
                     |> requiredAt [ "b", "c" ] string
                     |> runWith """{"a":"foo","b":{"c":"bar"}}"""
                     |> Expect.equal (Ok ( "foo", "bar" ))
         , test "should decode optionalAt fields" <|
             \() ->
-                decode (,)
+                Decode.succeed (,)
                     |> optionalAt [ "a", "b" ] string "--"
                     |> optionalAt [ "x", "y" ] string "--"
                     |> runWith """{"a":{},"x":{"y":"bar"}}"""
                     |> Expect.equal (Ok ( "--", "bar" ))
         , test "optional succeeds if the field is not present" <|
             \() ->
-                decode (,)
+                Decode.succeed (,)
                     |> optional "a" string "--"
                     |> optional "x" string "--"
                     |> runWith """{"x":"five"}"""
                     |> Expect.equal (Ok ( "--", "five" ))
         , test "optional succeeds with fallback if the field is present but null" <|
             \() ->
-                decode (,)
+                Decode.succeed (,)
                     |> optional "a" string "--"
                     |> optional "x" string "--"
                     |> runWith """{"a":null,"x":"five"}"""
                     |> Expect.equal (Ok ( "--", "five" ))
         , test "optional succeeds with result of the given decoder if the field is null and the decoder decodes nulls" <|
             \() ->
-                decode (,)
+                Decode.succeed (,)
                     |> optional "a" (null "null") "--"
                     |> optional "x" string "--"
                     |> runWith """{"a":null,"x":"five"}"""
                     |> Expect.equal (Ok ( "null", "five" ))
         , test "optional fails if the field is present but doesn't decode" <|
             \() ->
-                decode (,)
+                Decode.succeed (,)
                     |> optional "a" string "--"
                     |> optional "x" string "--"
                     |> runWith """{"x":5}"""
                     |> expectErr
         , test "optionalAt fails if the field is present but doesn't decode" <|
             \() ->
-                decode (,)
+                Decode.succeed (,)
                     |> optionalAt [ "a", "b" ] string "--"
                     |> optionalAt [ "x", "y" ] string "--"
                     |> runWith """{"a":{},"x":{"y":5}}"""
                     |> expectErr
         , test "resolveResult bubbles up decoded Err results" <|
             \() ->
-                decode Err
+                Decode.succeed Err
                     |> required "error" string
                     |> resolveResult
                     |> runWith """{"error":"invalid"}"""
                     |> expectErr
         , test "resolveResult bubbles up decoded Ok results" <|
             \() ->
-                decode Ok
+                Decode.succeed Ok
                     |> required "ok" string
                     |> resolveResult
                     |> runWith """{"ok":"valid"}"""
