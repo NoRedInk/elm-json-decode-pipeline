@@ -8,6 +8,7 @@ import Json.Decode.Pipeline
         , optionalAt
         , required
         , requiredAt
+        , ignoreRequired
         , resolve
         )
 import Test exposing (..)
@@ -111,4 +112,28 @@ all =
                     |> resolve
                     |> runWith """{"ok":"valid"}"""
                     |> Expect.equal (Ok "valid")
+        , test "ignoreRequired fails if the field is not present" <|
+            \() ->
+                Decode.succeed Tuple.pair
+                    |> required "firstname" string
+                    |> required "lastname" string
+                    |> ignoreRequired "missing" (Decode.succeed ())
+                    |> runWith """{"firstname": "john", "lastname": "doe"}"""
+                    |> expectErr
+        , test "ignoreRequired fails if the field is present and the value decoder fails" <|
+            \() ->
+                Decode.succeed Tuple.pair
+                    |> required "firstname" string
+                    |> required "lastname" string
+                    |> ignoreRequired "missing" (Decode.fail "always failing")
+                    |> runWith """{"firstname": "john", "lastname": "doe", "missing": "field"}"""
+                    |> expectErr
+        , test "ignoreRequired succeeds if the field is present and the value decoder doesn't fail" <|
+            \() ->
+                Decode.succeed Tuple.pair
+                    |> required "firstname" string
+                    |> required "lastname" string
+                    |> ignoreRequired "missing" (Decode.succeed ())
+                    |> runWith """{"firstname": "john", "lastname": "doe", "missing": "field"}"""
+                    |> Expect.equal (Ok ("john","doe"))
         ]
