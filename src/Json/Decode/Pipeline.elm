@@ -1,4 +1,4 @@
-module Json.Decode.Pipeline exposing (custom, hardcoded, optional, optionalAt, required, requiredAt, resolve)
+module Json.Decode.Pipeline exposing (required, requiredAt, optional, optionalAt, hardcoded, ignoreRequired, custom, resolve)
 
 {-|
 
@@ -10,7 +10,7 @@ Use the `(|>)` operator to build JSON decoders.
 
 ## Decoding fields
 
-@docs required, requiredAt, optional, optionalAt, hardcoded, custom
+@docs required, requiredAt, optional, optionalAt, hardcoded, ignoreRequired, custom
 
 
 ## Ending pipelines
@@ -184,6 +184,52 @@ hardcoded =
     Decode.succeed >> custom
 
 
+{-| Decode a field similar to `required`, but without saving it into the
+decoded value.
+
+This is useful in combination with `Json.Decode.oneOf` for parsing union
+types:
+
+    import Json.Decode as Decode exposing (Decoder, int, string)
+    import Json.Decode.Pipeline exposing (ignoreRequired, required)
+
+    type Authentication
+        = Basic
+            { username : String
+            , password : String
+            }
+        | Secret String
+
+    authenticationDecoder : Decoder Authentication
+    authenticationDecoder =
+        let
+            constant string =
+                Decode.string
+                    |> Decode.andThen
+                        (\decodedString ->
+                            if decodedString == string then
+                                Decode.succeed ()
+
+                            else
+                                Decode.fail ("Expected \"" ++ string ++ "\", but got \"" ++ decodedString ++ "\"")
+                        )
+        in
+        Decode.oneOf
+            [ Decode.succeed Basic
+                |> ignoreRequired "type" (constant "basic")
+                |> required "username" string
+                |> required "password" string
+            , Decode.succeed Secret
+                |> ignoreRequired "type" (constant "secret")
+                |> required "token" string
+            ]
+
+-}
+ignoreRequired : String -> Decoder any -> Decoder a -> Decoder a
+ignoreRequired key valDecoder decoder =
+    required key valDecoder (Decode.map always decoder)
+
+
 {-| Run the given decoder and feed its result into the pipeline at this point.
 
 Consider this example.
@@ -245,6 +291,7 @@ to perform some custom processing just before completing the decoding operation.
             toDecoder id email version =
                 if version > 2 then
                     Decode.succeed (User id email)
+
                 else
                     fail "This JSON is from a deprecated source. Please upgrade!"
         in
@@ -257,7 +304,6 @@ to perform some custom processing just before completing the decoding operation.
 
 
     -- but it is not a part of User
-
     result : Result String User
     result =
         Decode.decodeString
