@@ -35,7 +35,7 @@ easy to read and easy to modify.
 Here is a decoder built with this library.
 
 ```elm
-import Json.Decode as Decode exposing (Decoder, int, string, float)
+import Json.Decode as Decode exposing (Decoder, int, nullable, string, float)
 import Json.Decode.Pipeline exposing (required, optional, hardcoded)
 
 
