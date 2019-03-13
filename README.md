@@ -35,7 +35,7 @@ easy to read and easy to modify.
 Here is a decoder built with this library.
 
 ```elm
-import Json.Decode as Decode exposing (Decoder, int, string, float)
+import Json.Decode as Decode exposing (Decoder, decodeString, float, int, nullable, string)
 import Json.Decode.Pipeline exposing (required, optional, hardcoded)
 
 
@@ -65,7 +65,7 @@ In this example:
 You could use this decoder as follows:
 
 ```elm
-Json.Decode.decodeString
+decodeString
   userDecoder
   """
     {"id": 123, "email": "sam@example.com", "name": "Sam Sample"}
@@ -76,7 +76,7 @@ The result would be:
 
 ```elm
 { id = 123
-, email = "sam@example.com"
+, email = Just "sam@example.com"
 , name = "Sam Sample"
 , percentExcited = 1.0
 }
@@ -85,10 +85,10 @@ The result would be:
 Alternatively, you could use it like so:
 
 ```elm
-Json.Decode.decodeString
+decodeString
   userDecoder
   """
-    {"id": 123, "email": "sam@example.com", "percentExcited": "(hardcoded)"}
+    {"id": 123, "email": null, "percentExcited": "(hardcoded)"}
   """
 ```
 
@@ -96,7 +96,7 @@ In this case, the result would be:
 
 ```elm
 { id = 123
-, email = "sam@example.com"
+, email = Nothing
 , name = "(fallback if name is `null` or not present)"
 , percentExcited = 1.0
 }
