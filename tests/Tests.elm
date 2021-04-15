@@ -10,15 +10,15 @@ import Json.Decode.Pipeline
         , requiredAt
         , resolve
         )
+import Json.Encode as Encode
 import Test exposing (..)
 
 
 {-| Run some JSON through a Decoder and return the result.
 -}
-runWith : String -> Decoder a -> Result String a
+runWith : String -> Decoder a -> Result Decode.Error a
 runWith str decoder =
     Decode.decodeString decoder str
-        |> Result.mapError Decode.errorToString
 
 
 isError : Result err ok -> Bool
@@ -97,6 +97,37 @@ all =
                     |> optionalAt [ "x", "y" ] string "--"
                     |> runWith """{"a":{},"x":{"y":5}}"""
                     |> expectErr
+        , test "optional preserves Error structure if field is present but doesn't decode" <|
+            \() ->
+                let
+                    expectedError =
+                        Decode.Field "b" <|
+                            Decode.OneOf
+                                [ Decode.Failure "Expecting a STRING" (Encode.int 42)
+                                , Decode.Failure "Expecting null" (Encode.int 42)
+                                ]
+                in
+                Decode.succeed Tuple.pair
+                    |> optional "a" string "--"
+                    |> optional "b" string "--"
+                    |> runWith """{"a":{},"b":42}"""
+                    |> Expect.equal (Err expectedError)
+        , test "optionalAt preserves Error structure if field is present but doesn't decode" <|
+            \() ->
+                let
+                    expectedError =
+                        Decode.Field "a" <|
+                            Decode.Field "c" <|
+                                Decode.OneOf
+                                    [ Decode.Failure "Expecting a STRING" (Encode.int 42)
+                                    , Decode.Failure "Expecting null" (Encode.int 42)
+                                    ]
+                in
+                Decode.succeed Tuple.pair
+                    |> optionalAt [ "a", "b" ] string "--"
+                    |> optionalAt [ "a", "c" ] string "--"
+                    |> runWith """{"a":{"b":{}, "c":42}}"""
+                    |> Expect.equal (Err expectedError)
         , test "resolve bubbles up decoded Err results" <|
             \() ->
                 Decode.succeed Decode.fail
