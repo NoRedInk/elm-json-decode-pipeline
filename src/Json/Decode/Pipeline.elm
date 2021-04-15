@@ -110,35 +110,30 @@ values if you need to:
 -}
 optional : String -> Decoder a -> a -> Decoder (a -> b) -> Decoder b
 optional key valDecoder fallback decoder =
-    custom (optionalDecoder (Decode.field key Decode.value) valDecoder fallback) decoder
+    custom (optionalDecoder [key] valDecoder fallback) decoder
 
 
 {-| Decode an optional nested field.
 -}
 optionalAt : List String -> Decoder a -> a -> Decoder (a -> b) -> Decoder b
 optionalAt path valDecoder fallback decoder =
-    custom (optionalDecoder (Decode.at path Decode.value) valDecoder fallback) decoder
+    custom (optionalDecoder path valDecoder fallback) decoder
 
-
-optionalDecoder : Decoder Decode.Value -> Decoder a -> a -> Decoder a
-optionalDecoder pathDecoder valDecoder fallback =
+optionalDecoder : List String -> Decoder a -> a -> Decoder a
+optionalDecoder path valDecoder fallback =
     let
         nullOr decoder =
             Decode.oneOf [ decoder, Decode.null fallback ]
 
+        pathDecoder =
+            Decode.at path (Decode.succeed ())
+
         handleResult input =
             case Decode.decodeValue pathDecoder input of
-                Ok rawValue ->
+                Ok _ ->
                     -- The field was present, so now let's try to decode that value.
                     -- (If it was present but fails to decode, this should and will fail!)
-                    case Decode.decodeValue (nullOr valDecoder) rawValue of
-                        Ok finalResult ->
-                            Decode.succeed finalResult
-
-                        Err finalErr ->
-                            -- TODO is there some way to preserve the structure
-                            -- of the original error instead of using toString here?
-                            Decode.fail (Decode.errorToString finalErr)
+                    Decode.at path (nullOr valDecoder)
 
                 Err _ ->
                     -- The field was not present, so use the fallback.
