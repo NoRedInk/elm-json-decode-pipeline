@@ -1,6 +1,6 @@
 # json-decode-pipeline
 
-Build JSON decoders using the pipeline [`(|>)`](http://package.elm-lang.org/packages/elm-lang/core/3.0.0/Basics#|>)
+Build JSON decoders using the pipeline [`(|>)`](https://package.elm-lang.org/packages/elm/core/1.0.5/Basics#|>)
 operator.
 
 ## Motivation
