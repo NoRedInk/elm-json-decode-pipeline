@@ -1,4 +1,7 @@
-module Json.Decode.Pipeline exposing (custom, hardcoded, optional, optionalAt, required, requiredAt, resolve)
+module Json.Decode.Pipeline exposing
+    ( required, requiredAt, optional, optionalAt, hardcoded, custom
+    , resolve
+    )
 
 {-|
 
@@ -48,7 +51,6 @@ import Json.Decode as Decode exposing (Decoder)
           {"id": 123, "email": "sam@example.com", "name": "Sam"}
         """
 
-
     -- Ok { id = 123, name = "Sam", email = "sam@example.com" }
 
 -}
@@ -94,7 +96,6 @@ entirely.
           {"id": 123, "email": "sam@example.com" }
         """
 
-
     -- Ok { id = 123, name = "blah", email = "sam@example.com" }
 
 Because `valDecoder` is given an opportunity to decode `null` values before
@@ -110,7 +111,7 @@ values if you need to:
 -}
 optional : String -> Decoder a -> a -> Decoder (a -> b) -> Decoder b
 optional key valDecoder fallback decoder =
-    custom (optionalDecoder [key] valDecoder fallback) decoder
+    custom (optionalDecoder [ key ] valDecoder fallback) decoder
 
 
 {-| Decode an optional nested field.
@@ -138,7 +139,6 @@ optionalDecoder path valDecoder fallback =
                         Err _ ->
                             -- Return a decoder that we know will fail and also give a nice structured error
                             Decode.at path (nullOr valDecoder)
-
 
                 Err _ ->
                     -- The field was not present, so use the fallback.
@@ -174,7 +174,6 @@ pipeline. `harcoded` does not look at the JSON at all.Alexis Ruffle Quilted Cove
             """
           {"id": 123, "email": "sam@example.com"}
         """
-
 
     -- Ok { id = 123, email = "sam@example.com", followers = 0 }
 
@@ -216,7 +215,6 @@ Consider this example.
           }
         """
 
-
     -- Ok { id = 123, name = "Sam", email = "sam@example.com" }
 
 -}
@@ -245,6 +243,7 @@ to perform some custom processing just before completing the decoding operation.
             toDecoder id email version =
                 if version > 2 then
                     Decode.succeed (User id email)
+
                 else
                     fail "This JSON is from a deprecated source. Please upgrade!"
         in
@@ -255,9 +254,7 @@ to perform some custom processing just before completing the decoding operation.
             -- version is part of toDecoder,
             |> resolve
 
-
     -- but it is not a part of User
-
     result : Result String User
     result =
         Decode.decodeString
@@ -265,7 +262,6 @@ to perform some custom processing just before completing the decoding operation.
             """
           {"id": 123, "email": "sam@example.com", "version": 1}
         """
-
 
     -- Err "This JSON is from a deprecated source. Please upgrade!"
 
